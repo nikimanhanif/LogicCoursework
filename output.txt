@@ -1,0 +1,94 @@
+~(p=>(q=>p))
+ is not a formula.
+~(p=>(q=>p))
+ is not a formula.
+(~(p=>q)/\q)
+ is not a formula.
+(~(p=>q)/\q)
+ is not a formula.
+(~~~p\/(q/\~q))
+ is not a formula.
+(~~~p\/(q/\~q))
+ is not a formula.
+(p=>p)
+ is not a formula.
+(p=>p)
+ is not a formula.
+~(p=>p)
+ is not a formula.
+~(p=>p)
+ is not a formula.
+((p\/q)/\
+ is not a formula.
+((p\/q)/\
+ is not a formula.
+(p~q)
+ is not a formula.
+(p~q)
+ is not a formula.
+((p\/q)/\(~p\/~q))
+ is not a formula.
+((p\/q)/\(~p\/~q))
+ is not a formula.
+(q/\~(p\/~p))
+ is not a formula.
+(q/\~(p\/~p))
+ is not a formula.
+p
+ is not a formula.
+p
+ is not a formula.
+((p\/q)/\((p=>~p)/\(~p=>p)))
+ is not a formula.
+((p\/q)/\((p=>~p)/\(~p=>p)))
+ is not a formula.
+~~~~~~~~~~~q
+ is not a formula.
+~~~~~~~~~~~q
+ is not a formula.
+(ExP(x,x)/\Ax(~P(x,x)=>P(x,x)))
+ is not a formula.
+(ExP(x,x)/\Ax(~P(x,x)=>P(x,x)))
+ is not a formula.
+~Ax(P(x,x)/\~P(x,x))
+ is not a formula.
+~Ax(P(x,x)/\~P(x,x))
+ is not a formula.
+~Ax~Ey~P(x,y)
+ is not a formula.
+~Ax~Ey~P(x,y)
+ is not a formula.
+ExAx(P(x,x)/\~P(x,x))
+ is not a formula.
+ExAx(P(x,x)/\~P(x,x))
+ is not a formula.
+ExAy(Q(x,x)=>P(y,y))
+ is not a formula.
+ExAy(Q(x,x)=>P(y,y))
+ is not a formula.
+(Q(x,x)~(P(y,y))
+ is not a formula.
+(Q(x,x)~(P(y,y))
+ is not a formula.
+ExEy((Q(x,x)/\Q(y,y))\/~P(y,y))
+ is not a formula.
+ExEy((Q(x,x)/\Q(y,y))\/~P(y,y))
+ is not a formula.
+ExEy((Q(x,x)/\Q(y,y))\/
+ is not a formula.
+ExEy((Q(x,x)/\Q(y,y))\/
+ is not a formula.
+Ex~P(x,x)
+ is not a formula.
+Ex~P(x,x)
+ is not a formula.
+(AxEyP(x,y)/\EzQ(z,z))
+ is not a formula.
+(AxEyP(x,y)/\EzQ(z,z))
+ is not a formula.
+(Ax(P(x,x)/\~P(x,x))/\ExQ(x,x))
+ is not a formula.
+(Ax(P(x,x)/\~P(x,x))/\ExQ(x,x))
+ is not a formula.
+ExEy(P(x,y)/\Ex~P(x,y)) is not a formula.
+ExEy(P(x,y)/\Ex~P(x,y)) is not a formula.
