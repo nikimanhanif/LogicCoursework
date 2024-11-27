@@ -1,6 +1,7 @@
 
 MAX_CONSTANTS = 10
 
+# Constant term declaration
 PROPOSITION = ["p", "q", "r", "s"]
 NEGATED_PROPOSITION = [f"~{p}" for p in PROPOSITION]
 BINARY_CONNECTIVE = ["=>", "\\/", "/\\"]
@@ -23,7 +24,7 @@ CONSTANTS = [chr(x) for x in range(ord("a"), ord("j") + 1)]
 
 PICKED = []
 
-
+# Exception classes
 class NotAFormula(Exception):
     pass
 
@@ -35,8 +36,8 @@ class TooManyConstants(Exception):
 class AllClosedTermsPicked(Exception):
     pass
 
-
-def _first_order(fmla):
+# Function to determine first-order logic formulas
+def first_order(fmla):
     if fmla == "":
         return False
     
@@ -61,8 +62,8 @@ def _first_order(fmla):
         return False
 
 
-
-def _prop_formula(fmla):
+# Function to determine propositional logic formulas
+def prop_formula(fmla):
     if fmla == "":
         return False
 
@@ -87,8 +88,8 @@ def _prop_formula(fmla):
         return False
 
 
-
-def _main_connective(fmla):
+# Function to determine the main binary connective in a formula
+def main_connective(fmla):
     parenthesis_scope = []
     length = len(fmla)
 
@@ -118,28 +119,25 @@ def _main_connective(fmla):
     raise NotAFormula
 
 
-
+# Return the LHS of a binary connective formula
 def lhs(fmla):
-    """Extract the left-hand side of a binary connective formula."""
-    index = _main_connective(fmla)
+    index = main_connective(fmla)
     return fmla[1:index]  # LHS starts right after the opening '(' and ends at the main connective
 
-
+# Return the main connective of a formula
 def con(fmla):
-    """Extract the main binary connective of a formula."""
-    index = _main_connective(fmla)
+    index = main_connective(fmla)
     connective_length = 2  # The length of each binary connective is 2 characters
     return fmla[index:index + connective_length]
 
 
-
+# Return the RHS of a binary connective formula
 def rhs(fmla):
-    """Extract the right-hand side of a binary connective formula."""
-    index = _main_connective(fmla)
+    index = main_connective(fmla)
     connective_length = 2  # Binary connectives are two characters long
     return fmla[index + connective_length: len(fmla) - 1]  # RHS starts after the connective and ends before ')'
 
-
+# Parses a formula and returns the type of formula
 def parse(fmla):
     if fmla in PROPOSITION:  # Return "A proposition" if formula is a proposition.
         return 6
@@ -156,7 +154,7 @@ def parse(fmla):
         fmla[0] == "E" and fmla[1] in VARIABLES
     ):  # Return "an existentially quantified formula" if whatever follows after "Ex" is a first order formula,
         # else return "not a formula".]
-        if _first_order(fmla[2:]):
+        if first_order(fmla[2:]):
             return 4
         else:
             return 0
@@ -164,7 +162,7 @@ def parse(fmla):
         fmla[0] == "A" and fmla[1] in VARIABLES
     ):  # Return "an universally quantified formula" if whatever follows after "Ax" is a first order formula,
         # else return "not a formula".
-        if _first_order(fmla[2:]):
+        if first_order(fmla[2:]):
             return 3
         else:
             return 0
@@ -173,9 +171,9 @@ def parse(fmla):
         fmla[0] == "~"
     ):  # Return "a negation of a first order logic formula" if whatever follows after "~" is a first order formula,
         # return "a negation of a propositional formula" if whatever follows after "~" is a propositional formula.
-        if _first_order(fmla[1:]):
+        if first_order(fmla[1:]):
             return 2
-        if _prop_formula(fmla[1:]):
+        if prop_formula(fmla[1:]):
             return 7
         else:
             return 0
@@ -183,16 +181,16 @@ def parse(fmla):
     # Handling binary connective formulas (e.g., "( ... connective ... )")
     elif fmla[0] == "(" and fmla[-1] == ")":
         try:
-            index = _main_connective(fmla)
+            index = main_connective(fmla)
         except NotAFormula:
             return 0
 
 
         # Check if both sides are valid first-order or propositional formulas
-        if _first_order(lhs(fmla)) and _first_order(rhs(fmla)):
+        if first_order(lhs(fmla)) and first_order(rhs(fmla)):
             return 5  # Binary connective first-order formula
 
-        elif _prop_formula(lhs(fmla)) and _prop_formula(rhs(fmla)):
+        elif prop_formula(lhs(fmla)) and prop_formula(rhs(fmla)):
             return 8  # Binary connective propositional formula
 
         else:
@@ -350,7 +348,7 @@ def add_theory(theory, tableau):
 # check for satisfiability
 def sat(tableau):
     global PICKED
-    if not _prop_formula(tableau[0][0]) and not _first_order(tableau[0][0]):
+    if not prop_formula(tableau[0][0]) and not first_order(tableau[0][0]):
         return 0
     while len(tableau) != 0:
         terms = closed_terms(tableau)
