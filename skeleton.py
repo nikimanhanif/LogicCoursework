@@ -122,7 +122,7 @@ def main_connective(fmla):
 # Return the LHS of a binary connective formula
 def lhs(fmla):
     index = main_connective(fmla)
-    return fmla[1:index]  # LHS starts right after the opening '(' and ends at the main connective
+    return fmla[1:index]  # LHS starts right after the '(' and ends at the main connective
 
 # Return the main connective of a formula
 def con(fmla):
