@@ -1,6 +1,7 @@
 
 MAX_CONSTANTS = 10
 
+# Constant term declaration
 PROPOSITION = ["p", "q", "r", "s"]
 NEGATED_PROPOSITION = [f"~{p}" for p in PROPOSITION]
 BINARY_CONNECTIVE = ["=>", "\\/", "/\\"]
@@ -23,7 +24,7 @@ CONSTANTS = [chr(x) for x in range(ord("a"), ord("j") + 1)]
 
 PICKED = []
 
-
+# Exception classes
 class NotAFormula(Exception):
     pass
 
@@ -35,66 +36,108 @@ class TooManyConstants(Exception):
 class AllClosedTermsPicked(Exception):
     pass
 
-
-def _first_order(fmla):
+# Function to determine first-order logic formulas
+def first_order(fmla):
     if fmla == "":
         return False
-    for char in fmla:
-        if char not in FIRST_ORDER_LOGIC:
-            return False
-    try:
-        if parse(fmla) == 0:
-            return False
-        else:
-            return True
-    except NotAFormula:
-        return False
-
-
-def _prop_formula(fmla):
-    if fmla == "":
-        return False
-    for char in fmla:
-        if char not in PROPOSITIONAL_LOGIC:
-            return False
-    try:
-        if parse(fmla) == 0:
-            return False
-        else:
-            return True
-    except NotAFormula:
-        return False
-
-
-def _main_connective(fmla):
     
-    parenthesis_scope = []
     i = 0
-    
-    while i < len(fmla):
-        # Check if the current substring matches any binary connective
-        for connective in BINARY_CONNECTIVE:
-            if fmla[i:i+len(connective)] == connective and len(parenthesis_scope) == 1:
-                return i
-            
-        # If we find an opening parenthesis, track the scope
-        if fmla[i] == "(":
-            parenthesis_scope.append("(")
-        # If we find a closing parenthesis, pop the scope
-        elif fmla[i] == ")":
-            if len(parenthesis_scope) > 0:
-                parenthesis_scope.pop()
-            else:
-                raise NotAFormula  # Unmatched closing parenthesis
-        
-        # Move the index to the next character
-        i += 1
+    length = len(fmla)
 
-    # If we finish without finding the main connective, raise an error
+    while i < length:
+        if fmla[i] in FIRST_ORDER_LOGIC:
+            i += 1
+        elif i + 1 < length and fmla[i:i + 2] in BINARY_CONNECTIVE:
+            # If a two-character binary connective is found, move the index by 2
+            i += 2
+        else:
+            return False
+    
+    try:
+        if parse(fmla) == 0:
+            return False
+        else:
+            return True
+    except NotAFormula:
+        return False
+
+
+# Function to determine propositional logic formulas
+def prop_formula(fmla):
+    if fmla == "":
+        return False
+
+    i = 0
+    length = len(fmla)
+
+    while i < length:
+        if fmla[i] in PROPOSITIONAL_LOGIC:
+            i += 1
+        elif i + 1 < length and fmla[i:i + 2] in BINARY_CONNECTIVE:
+            # If a two-character binary connective is found, move the index by 2
+            i += 2
+        else:
+            return False
+    
+    try:
+        if parse(fmla) == 0:
+            return False
+        else:
+            return True
+    except NotAFormula:
+        return False
+
+
+# Function to determine the main binary connective in a formula
+def main_connective(fmla):
+    parenthesis_scope = []
+    length = len(fmla)
+
+    count = 0
+    while count < length:
+        char = fmla[count]
+
+        # Check for binary connectives with two characters
+        if count + 1 < length:
+            two_char_connective = fmla[count:count + 2]
+            if two_char_connective in BINARY_CONNECTIVE and len(parenthesis_scope) == 1:
+                return count
+
+        # Handle parentheses to determine the scope level
+        if char == "(":
+            parenthesis_scope.append("a")
+        elif char == ")":
+            try:
+                parenthesis_scope.pop()
+            except IndexError:
+                raise NotAFormula
+
+        # Move to the next character
+        count += 1
+
+    # If no main connective is found, raise NotAFormula exception
     raise NotAFormula
 
 
+# Return the LHS of a binary connective formula
+def lhs(fmla):
+    index = main_connective(fmla)
+    return fmla[1:index]  # LHS starts right after the '(' and ends at the main connective
 
+# Return the main connective of a formula
+def con(fmla):
+    index = main_connective(fmla)
+    connective_length = 2  # The length of each binary connective is 2 characters
+    return fmla[index:index + connective_length]
+
+
+# Return the RHS of a binary connective formula
+def rhs(fmla):
+    index = main_connective(fmla)
+    connective_length = 2  # Binary connectives are two characters long
+    return fmla[index + connective_length: len(fmla) - 1]  # RHS starts after the connective and ends before ')'
+
+# Parses a formula and returns the type of formula
 def parse(fmla):
     if fmla in PROPOSITION:  # Return "A proposition" if formula is a proposition.
         return 6
@@ -111,7 +154,7 @@ def parse(fmla):
         fmla[0] == "E" and fmla[1] in VARIABLES
     ):  # Return "an existentially quantified formula" if whatever follows after "Ex" is a first order formula,
         # else return "not a formula".]
-        if _first_order(fmla[2:]):
+        if first_order(fmla[2:]):
             return 4
         else:
             return 0
@@ -119,7 +162,7 @@ def parse(fmla):
         fmla[0] == "A" and fmla[1] in VARIABLES
     ):  # Return "an universally quantified formula" if whatever follows after "Ax" is a first order formula,
         # else return "not a formula".
-        if _first_order(fmla[2:]):
+        if first_order(fmla[2:]):
             return 3
         else:
             return 0
@@ -128,49 +171,36 @@ def parse(fmla):
         fmla[0] == "~"
     ):  # Return "a negation of a first order logic formula" if whatever follows after "~" is a first order formula,
         # return "a negation of a propositional formula" if whatever follows after "~" is a propositional formula.
-        if _first_order(fmla[1:]):
+        if first_order(fmla[1:]):
             return 2
-        if _prop_formula(fmla[1:]):
+        if prop_formula(fmla[1:]):
             return 7
         else:
             return 0
 
-    elif fmla[0] == "(":
+    # Handling binary connective formulas (e.g., "( ... connective ... )")
+    elif fmla[0] == "(" and fmla[-1] == ")":
         try:
-            index = _main_connective(fmla)
+            index = main_connective(fmla)
         except NotAFormula:
             return 0
 
-        if _first_order(fmla[1:index]) and _first_order(
-            fmla[index + 1 : len(fmla) - 1]
-        ):
-            return 5
 
-        elif _prop_formula(fmla[1:index]) and _prop_formula(
-            fmla[index + 1 : len(fmla) - 1]
-        ):
-            return 8
+        # Check if both sides are valid first-order or propositional formulas
+        if first_order(lhs(fmla)) and first_order(rhs(fmla)):
+            return 5  # Binary connective first-order formula
+
+        elif prop_formula(lhs(fmla)) and prop_formula(rhs(fmla)):
+            return 8  # Binary connective propositional formula
 
         else:
-            return 0
+            return 0  # Not a valid formula
+
+    # If no valid parsing case matches
     else:
-        return 0
-
-
-# Return the LHS of a binary connective formula
-def lhs(fmla):
-    return fmla[1 : _main_connective(fmla)]
-
-
-# Return the connective symbol of a binary connective formula
-def con(fmla):
-    return f"{fmla[_main_connective(fmla)]}"
-
-
-# Return the RHS symbol of a binary connective formula
-def rhs(fmla):
-    return fmla[_main_connective(fmla) + 1 : len(fmla) - 1]
-
+        return 0  # Not a valid formula
+     
+    
 
 def expanded(theory, literal_count=0):
     adjust_theory(theory)
@@ -318,7 +348,7 @@ def add_theory(theory, tableau):
 # check for satisfiability
 def sat(tableau):
     global PICKED
-    if not _prop_formula(tableau[0][0]) and not _first_order(tableau[0][0]):
+    if not prop_formula(tableau[0][0]) and not first_order(tableau[0][0]):
         return 0
     while len(tableau) != 0:
         terms = closed_terms(tableau)
@@ -411,8 +441,8 @@ if 'SAT' in firstline:
     SAT = True
 
 for line in f:
-    if line[~1] == '\n':
-        line = line[:~1]
+    if line[-1] == '\n':
+        line = line[:-1]
     parsed = parse(line)
 
     if PARSE:
