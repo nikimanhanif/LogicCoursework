@@ -10,19 +10,21 @@ PREDICATES = ["P", "Q", "R", "S"]
 ATOMS = [f"{p}({v1},{v2})" for p in PREDICATES for v1 in VARIABLES for v2 in VARIABLES]
 NEGATED_ATOMS = [f"~{a}" for a in ATOMS]
 
+# Syntax for logical parsing
 PROPOSITIONAL_LOGIC = PROPOSITION + BINARY_CONNECTIVE + ["~", "(", ")"]
 FIRST_ORDER_LOGIC = (
     VARIABLES + PREDICATES + BINARY_CONNECTIVE + ["~", "(", ")", " ", ",", "E", "A"]
 )
 
+# Logical formula cases for tableau classification
 ALPHA = ["/\\", "~~", "~\\/", "~=>"]
 BETA = ["\\/", "~/\\", "=>"]
 DELTA = ["E", "~A"]
 GAMMA = ["A", "~E"]
 
-CONSTANTS = [chr(x) for x in range(ord("a"), ord("j") + 1)]
+CONSTANTS = [chr(x) for x in range(ord("a"), ord("j") + 1)] # Constants for substitution
 
-PICKED = []
+PICKED = [] # Tracks the constants used for substitution
 
 # Exception classes
 class NotAFormula(Exception):
@@ -201,9 +203,9 @@ def parse(fmla):
         return 0  # Not a valid formula
      
     
-
+# Check if theory is fully expanded i.e. all elements are literals
 def expanded(theory, literal_count=0):
-    adjust_theory(theory)
+    adjust_theory(theory) # Normalize the theory
     for count, element in enumerate(theory):
         try:
             tableau_case(element)
@@ -215,7 +217,7 @@ def expanded(theory, literal_count=0):
         if count + 1 == len(theory):
             return True if literal_count == len(theory) else False
 
-
+# Check for contradictions (e.g. formula and its negation) in a tableau 
 def contradictory(tableau):
     for count, element in enumerate(tableau):
         if element[0] != "~":
@@ -232,7 +234,7 @@ def theory(fmla):  # initialise a theory with a single formula in it
     theory = [fmla]
     return theory
 
-
+# Select a non-literal element from the theory
 def pick_non_literal(theory):
     theory = adjust_theory(theory)
     for element in theory:
@@ -242,7 +244,7 @@ def pick_non_literal(theory):
         except NotAFormula:
             continue
 
-
+# Flatten a list of terms and return the closed terms
 def closed_terms(tableau):
     tableau_sum = list_sum(list_sum(tableau))
     closed_terms = []
@@ -251,7 +253,7 @@ def closed_terms(tableau):
             closed_terms.append(char)
     return list(set(closed_terms))
 
-
+# Apply alpha formula rules for conjuctive formulas
 def alpha(phi, theory, case):
     if case == "/\\":
         theory.insert(0, lhs(phi))
@@ -266,12 +268,12 @@ def alpha(phi, theory, case):
         theory.insert(0, f"~{rhs(phi)}")
     return theory
 
-
+# Apply beta formula rules for disjunctive formulas
 def beta(phi, theory):
     theory.insert(0, phi)
     return theory
 
-
+# Apply delta formula rules for existential quantifiers
 def delta(phi, theory, constant, bound_var):
     for count, char in enumerate(phi):
         if char == bound_var:
@@ -279,7 +281,7 @@ def delta(phi, theory, constant, bound_var):
     theory.insert(0, phi)
     return theory
 
-
+# Apply gamma formula rules for universal quantifiers
 def gamma(phi, theory, bound_var, closed_terms):
     for i in CONSTANTS + closed_terms:
         new_phi = phi
@@ -289,7 +291,7 @@ def gamma(phi, theory, bound_var, closed_terms):
         theory.insert(0, new_phi)
     return theory
 
-
+# Classify formulas into tableau cases
 def tableau_case(phi):
     if phi[0] == "~" and phi[1] == "~":
         return "~~"
@@ -306,27 +308,27 @@ def tableau_case(phi):
     else:
         return con(phi)
 
-
+# Flatten a list of lists
 def list_sum(_list):
     sum_list = []
     for count, char in enumerate(_list):
         sum_list += _list[count]
     return sum_list
 
-
+# Adjust the theory for consistent variable names
 def adjust_theory(theory):
     for element in theory:
         adjust(element)
     return theory
 
-
+# Function to replace the constants with generic variable names
 def adjust(phi):
     for count, char in enumerate(phi):
         if char in CONSTANTS:
             phi = phi[:count] + "x" + phi[count + 1 :]
     return phi
 
-
+# Extracts the left-hand side and right-hand side of a formula together
 def lhs_rhs(phi, case):
     if case == "\\/":
         _lhs = lhs(phi)
@@ -339,23 +341,23 @@ def lhs_rhs(phi, case):
         _rhs = f"~{rhs(phi)}"
     return _lhs, _rhs
 
-
+# Add theory to the tableau if not contradictory
 def add_theory(theory, tableau):
     if theory not in tableau and not contradictory(theory):
         tableau.insert(0, theory)
 
 
-# check for satisfiability
+# check for satisfiability of a tableau
 def sat(tableau):
     global PICKED
     if not prop_formula(tableau[0][0]) and not first_order(tableau[0][0]):
-        return 0
+        return 0 # Invalid tableau
     while len(tableau) != 0:
         terms = closed_terms(tableau)
         theory = tableau.pop(0)
         if expanded(theory) and not contradictory(theory):
-            PICKED = []
-            return 1
+            PICKED = [] # Reset the PICKED constants
+            return 1 # Satisfiable
         else:
             theory_copy = theory.copy()
             phi = pick_non_literal(theory_copy)
@@ -385,7 +387,7 @@ def sat(tableau):
                     PICKED.append(CONSTANTS[len(PICKED)])
                 except IndexError:
                     PICKED = []
-                    return 2
+                    return 2 # Constant limit reached
 
                 if case == "E":
                     theory = delta(phi[2:], theory, constant, phi[1])
@@ -399,8 +401,8 @@ def sat(tableau):
                     theory = gamma(f"~{phi[3 : len(phi)]}", theory, phi[2], terms)
 
                 add_theory(theory, tableau)
-    PICKED = []
-    return 0
+    PICKED = [] # Reset PICKED
+    return 0 # Unsatisfiable
 
 
 
